@@ -262,6 +262,11 @@ function StudentManager() {
           })}
         </tbody>
       </table>
+      {students.length === 0 && (
+        <div style={{ padding: "20px", textAlign: "center" }}>
+          No students found. please add some students using the form above.
+        </div>
+      )}
     </div>
   );
 }
