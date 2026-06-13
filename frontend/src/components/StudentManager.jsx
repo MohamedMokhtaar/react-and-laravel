@@ -7,11 +7,12 @@ import {
 } from "../api";
 import toast from "react-hot-toast";
 
-
 function StudentManager() {
   // State variables
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [IsEditing, setIsEditing] = useState(false);
+  const [editId, setEditId] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     tell: "",
@@ -53,15 +54,29 @@ function StudentManager() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createStudent(formData);
-      setFormData({
-        name: "",
-        tell: "",
-        sex: "",
-        email: "",
-      });
-         toast.success(  "Student added successfully");
-      loadStudents();
+      if (IsEditing) {
+        await updateStudent(editId, formData);
+        setIsEditing(false);
+        setEditId(null);
+        loadStudents();
+        toast.success("Student updated successfully");
+        setFormData({
+          name: "",
+          tell: "",
+          sex: "",
+          email: "",
+        });
+      } else {
+        await createStudent(formData);
+        setFormData({
+          name: "",
+          tell: "",
+          sex: "",
+          email: "",
+        });
+        toast.success("Student added successfully");
+        loadStudents();
+      }
     } catch (error) {
       console.error("Error adding student:", error);
       toast.error("Error adding student");
@@ -81,9 +96,36 @@ function StudentManager() {
       }
     }
   };
-     if (loading) {
-        return <div style={{ padding: '20px' }}>Loading students...</div>;
-    }
+  if (loading) {
+    return <div style={{ padding: "20px" }}>Loading students...</div>;
+  }
+
+  // function to handle student editing
+
+  const handleEdit = (student) => {
+    setIsEditing(true);
+    setEditId(student.id);
+    setFormData({
+      name: student.name,
+      tell: student.tell,
+      sex: student.sex,
+      email: student.email,
+    });
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // handle edit cancel
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditId(null);
+    setFormData({
+      name: "",
+      tell: "",
+      sex: "",
+      email: "",
+    });
+  };
 
   return (
     <div style={{ padding: "20px" }}>
@@ -136,8 +178,21 @@ function StudentManager() {
             style={{ padding: "8px" }}
           />
           <button type="submit" style={{ padding: "8px 16px" }}>
-            Add Student
+            {IsEditing ? "Update Student" : "Add Student"}
           </button>
+          {IsEditing && (
+            <button
+              type="button"
+              onClick={handleCancelEdit}
+              style={{
+                padding: "8px 16px",
+                backgroundColor: "#ccc",
+                color: "black",
+              }}
+            >
+              Cancel
+            </button>
+          )}
         </div>
       </form>
       <h1>Student List ({students.length})</h1>
@@ -174,8 +229,31 @@ function StudentManager() {
                   {student.email}
                 </td>
                 <td style={{ border: "1px solid #ccc", padding: "8px" }}>
-                
-                  <button onClick={() => handleDelete(student.id)}>
+                  <button
+                    onClick={() => handleEdit(student)}
+                    style={{
+                      backgroundColor: "#ff9800",
+                      color: "white",
+                      padding: "5px 10px",
+                      border: "none",
+                      cursor: "pointer",
+                      borderRadius: "4px",
+                      marginRight: "5px",
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(student.id)}
+                    style={{
+                      backgroundColor: "#f44336",
+                      color: "white",
+                      padding: "5px 10px",
+                      border: "none",
+                      cursor: "pointer",
+                      borderRadius: "4px",
+                    }}
+                  >
                     Delete
                   </button>
                 </td>
